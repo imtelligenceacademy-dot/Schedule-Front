@@ -124,14 +124,32 @@ test("mobile workspace and import validation/export operate through the backend"
     .getByRole("button", { name: "Data Import", exact: true })
     .click();
   const csv =
-    "school,teacher,grade,class,day,start_time,end_time,notes\nExample Cedar School,Example Rami,Grade 6,C,Sunday,10:00,10:50,Imported in browser\n";
+    "school,teacher,grade,class,day,start_time,end_time,notes\nImported School,Teacher Grade 6C,Grade 6,C,Sunday,10:00,10:50,Imported in browser\n";
   await page.getByLabel("Schedule import file").setInputFiles({
     name: "schedule.csv",
     mimeType: "text/csv",
     buffer: Buffer.from(csv),
   });
+  const createMissing = page.getByRole("checkbox", {
+    name: "Create missing schools, teachers and yearly assignments",
+  });
+  await expect(createMissing).toBeChecked();
+  await createMissing.uncheck();
+  await page.getByRole("button", { name: "Validate file", exact: true }).click();
+  await expect(page.locator(".import-result")).toContainText(
+    "School 'Imported School' was not found",
+  );
+  await createMissing.check();
+  await expect(page.locator(".import-result")).toHaveCount(0);
   await page.getByRole("button", { name: "Validate file", exact: true }).click();
   await expect(page.locator(".import-result")).toContainText("1 valid sessions");
+  await expect(page.locator(".import-records")).toContainText(
+    "1 school, 1 teacher, 1 yearly assignment and 1 class",
+  );
+  await page.getByText("View new teacher names", { exact: true }).click();
+  await expect(page.locator(".import-records")).toContainText("Teacher Grade 6C");
+  await expect(page.locator("body")).toHaveJSProperty("scrollWidth", 390);
+  await page.screenshot({ path: "test-results/import-preview.png", fullPage: true });
   await page.getByRole("button", { name: "Import 1 sessions", exact: true }).click();
   await expect(page.locator(".import-result")).toContainText("1 sessions imported");
   await page.getByRole("button", { name: "Open navigation", exact: true }).click();

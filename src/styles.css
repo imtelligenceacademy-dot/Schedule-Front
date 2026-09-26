@@ -1710,6 +1710,24 @@ tr:last-child td {
   margin: 5px 0 18px;
   font-size: 0.875rem;
 }
+.import-records {
+  margin: 16px 0;
+  padding: 14px;
+  background: #f4f6fa;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow-wrap: anywhere;
+}
+.import-records p {
+  margin: 8px 0 0;
+  line-height: 1.6;
+}
+.import-records details {
+  margin-top: 10px;
+}
+.import-records summary {
+  cursor: pointer;
+}
 .import-row-error {
   display: flex;
   gap: 13px;

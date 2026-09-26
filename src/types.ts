@@ -111,4 +111,10 @@ export interface ImportResult {
   errors: { row: number; message: string }[];
   conflicts: Conflict[];
   imported: number;
+  new_records?: {
+    schools: string[];
+    teachers: string[];
+    assignments: { teacher: string; school: string }[];
+    classes: number;
+  };
 }
