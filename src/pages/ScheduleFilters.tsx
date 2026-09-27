@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Search, SlidersHorizontal } from "lucide-react";
 import { DAYS } from "../components";
+import { MultiSelect } from "../MultiSelect";
 import type { Catalog } from "../types";
-import type { Filter } from "../workspace";
+import { LIST_FILTERS, type Filter, type ListFilter } from "../workspace";
 
 export function ScheduleFilters({
   catalog,
@@ -16,14 +17,12 @@ export function ScheduleFilters({
   filter: Filter;
   search: string;
   onSearch: (value: string) => void;
-  onFilter: (name: keyof Filter, value: string) => void;
+  onFilter: (name: ListFilter, value: string[]) => void;
   onClear: () => void;
 }) {
   // On phones the dropdowns fold behind a toggle so the schedule stays on screen.
   const [open, setOpen] = useState(false);
-  const active = (["school_id", "teacher_id", "day", "grade", "class_id"] as const).filter(
-    (key) => filter[key],
-  ).length;
+  const active = LIST_FILTERS.filter((key) => filter[key].length).length;
   return (
     <div className={`filter-panel ${open ? "open" : ""}`}>
       <div className="search-input">
@@ -42,67 +41,55 @@ export function ScheduleFilters({
       >
         <SlidersHorizontal size={16} /> Filters{active ? ` (${active})` : ""}
       </button>
-      <select
-        aria-label="Filter by school"
+      <MultiSelect
+        label="Filter by school"
+        allLabel="All schools"
+        plural="schools"
         value={filter.school_id}
-        onChange={(e) => onFilter("school_id", e.target.value)}
-      >
-        <option value="">All schools</option>
-        {catalog.schools.map((x) => (
-          <option key={x.id} value={x.id}>
-            {x.name}
-          </option>
-        ))}
-      </select>
-      <select
-        aria-label="Filter by teacher"
+        onChange={(x) => onFilter("school_id", x)}
+        options={catalog.schools.map((x) => ({
+          value: String(x.id),
+          label: x.name,
+          color: x.color,
+        }))}
+      />
+      <MultiSelect
+        label="Filter by teacher"
+        allLabel="All teachers"
+        plural="teachers"
         value={filter.teacher_id}
-        onChange={(e) => onFilter("teacher_id", e.target.value)}
-      >
-        <option value="">All teachers</option>
-        {catalog.teachers.map((x) => (
-          <option key={x.id} value={x.id}>
-            {x.full_name}
-          </option>
-        ))}
-      </select>
-      <select
-        aria-label="Filter by day"
+        onChange={(x) => onFilter("teacher_id", x)}
+        options={catalog.teachers.map((x) => ({ value: String(x.id), label: x.full_name }))}
+      />
+      <MultiSelect
+        label="Filter by day"
+        allLabel="All days"
+        plural="days"
         value={filter.day}
-        onChange={(e) => onFilter("day", e.target.value)}
-      >
-        <option value="">All days</option>
-        {DAYS.map((x, i) => (
-          <option key={x} value={i}>
-            {x}
-          </option>
-        ))}
-      </select>
-      <select
-        aria-label="Filter by grade"
+        onChange={(x) => onFilter("day", x)}
+        options={DAYS.map((x, i) => ({ value: String(i), label: x }))}
+      />
+      <MultiSelect
+        label="Filter by grade"
+        allLabel="All grades"
+        plural="grades"
         value={filter.grade}
-        onChange={(e) => onFilter("grade", e.target.value)}
-      >
-        <option value="">All grades</option>
-        {[...new Set(catalog.classes.map((x) => x.grade))].sort().map((x) => (
-          <option key={x}>{x}</option>
-        ))}
-      </select>
-      <select
-        aria-label="Filter by class"
+        onChange={(x) => onFilter("grade", x)}
+        options={[...new Set(catalog.classes.map((x) => x.grade))]
+          .sort()
+          .map((x) => ({ value: x, label: x }))}
+      />
+      <MultiSelect
+        label="Filter by class"
+        allLabel="All classes"
+        plural="classes"
         value={filter.class_id}
-        onChange={(e) => onFilter("class_id", e.target.value)}
-      >
-        <option value="">All classes</option>
-        {catalog.classes
-          .filter((x) => !filter.school_id || String(x.school_id) === filter.school_id)
-          .map((x) => (
-            <option key={x.id} value={x.id}>
-              {x.grade} · {x.name}
-            </option>
-          ))}
-      </select>
-      {Object.values(filter).some(Boolean) && (
+        onChange={(x) => onFilter("class_id", x)}
+        options={catalog.classes
+          .filter((x) => !filter.school_id.length || filter.school_id.includes(String(x.school_id)))
+          .map((x) => ({ value: String(x.id), label: `${x.grade} · ${x.name}` }))}
+      />
+      {(active > 0 || filter.search) && (
         <button className="text-button" onClick={onClear}>
           Clear filters
         </button>

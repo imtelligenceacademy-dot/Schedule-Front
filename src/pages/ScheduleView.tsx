@@ -13,6 +13,17 @@ const ZOOMS = [
   { label: "150%", scale: 3.6, card: 128, column: 290 },
 ];
 const DEFAULT_ZOOM = 2;
+// Distinct colors for teachers being compared, in selection order.
+const COMPARE_COLORS = [
+  "#2563eb",
+  "#e0662f",
+  "#16a34a",
+  "#9333ea",
+  "#db2777",
+  "#0891b2",
+  "#ca8a04",
+  "#475569",
+];
 const ZOOM_KEY = "schedule-zoom";
 
 function savedZoom() {
@@ -31,6 +42,7 @@ export function ScheduleView({
   onEntry,
   catalog,
   conflicts,
+  compareTeachers,
   canExport,
   onExport,
   onRefresh,
@@ -39,6 +51,8 @@ export function ScheduleView({
   onEntry: (x: Entry) => void;
   catalog: Catalog;
   conflicts: Conflict[];
+  /** Two or more teacher IDs: color sessions by teacher instead of by school. */
+  compareTeachers: number[];
   canExport: boolean;
   onExport: (x: string) => void;
   onRefresh: () => void;
@@ -91,13 +105,17 @@ export function ScheduleView({
         ? today
         : days[0];
   const shownDays = mobile ? days.filter((d) => d === selectedDay) : days;
+  const teacherColors = new Map(
+    compareTeachers.map((id, i) => [id, COMPARE_COLORS[i % COMPARE_COLORS.length]]),
+  );
+  const colorOf = (e: Entry) => teacherColors.get(e.teacher_id) ?? e.school_color;
   const card = (e: Entry) => (
     <button
       key={e.id}
       className={`schedule-block ${conflictIds.has(e.id) ? "has-conflict" : ""}`}
       style={{
-        borderLeftColor: e.school_color,
-        background: e.school_color + "12",
+        borderLeftColor: colorOf(e),
+        background: colorOf(e) + (teacherColors.size ? "1c" : "12"),
       }}
       title={`${e.school_name}\n${e.grade} · ${e.class_name}\n${e.teacher_name}\n${DAYS[e.day]} ${e.start_time}–${e.end_time}`}
       onClick={() => onEntry(e)}
@@ -222,14 +240,28 @@ export function ScheduleView({
         </div>
       </div>
       <div className="school-legend">
-        {catalog.schools
-          .filter((s) => entries.some((e) => e.school_id === s.id))
-          .map((s) => (
-            <span key={s.id}>
-              <i style={{ background: s.color }} />
-              {s.name}
-            </span>
-          ))}
+        {teacherColors.size ? (
+          <>
+            <strong className="compare-label">Comparing {teacherColors.size} teachers</strong>
+            {compareTeachers.map((id) => (
+              <span key={id}>
+                <i style={{ background: teacherColors.get(id) }} />
+                {catalog.teachers.find((t) => t.id === id)?.full_name}
+                {" · "}
+                {entries.filter((e) => e.teacher_id === id).length}
+              </span>
+            ))}
+          </>
+        ) : (
+          catalog.schools
+            .filter((s) => entries.some((e) => e.school_id === s.id))
+            .map((s) => (
+              <span key={s.id}>
+                <i style={{ background: s.color }} />
+                {s.name}
+              </span>
+            ))
+        )}
       </div>
       <div
         role="tabpanel"

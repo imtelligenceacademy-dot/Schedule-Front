@@ -1073,11 +1073,90 @@ main {
   border-radius: 9px;
   margin-bottom: 18px;
 }
-.filter-panel > select {
+.filter-panel > .multi-select {
   flex: 1;
   min-width: 125px;
-  font-size: 0.875rem;
   max-width: 250px;
+}
+.multi-select {
+  position: relative;
+}
+.multi-trigger {
+  width: 100%;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 10px 10px 12px;
+  border: 1px solid #dce2eb;
+  border-radius: 7px;
+  background: white;
+  color: #25344a;
+  font-size: 0.875rem;
+  text-align: left;
+}
+.multi-trigger span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.multi-trigger svg {
+  color: #7a879a;
+}
+.has-value .multi-trigger {
+  border-color: #9fb7dd;
+  background: #f3f7fe;
+  font-weight: 600;
+}
+.multi-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 30;
+  width: max(100%, 240px);
+  padding: 8px;
+  background: white;
+  border: 1px solid #dfe5ee;
+  border-radius: 9px;
+  box-shadow: 0 12px 36px #14203322;
+}
+.multi-menu input[type="search"] {
+  width: 100%;
+  margin-bottom: 6px;
+}
+.multi-options {
+  max-height: 280px;
+  overflow-y: auto;
+}
+.multi-option {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: #3e4d63;
+  cursor: pointer;
+}
+.multi-option:hover {
+  background: #f3f5f9;
+}
+.multi-option i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.multi-options .muted {
+  padding: 8px;
+}
+.multi-menu > .text-button {
+  padding: 8px 8px 2px;
+}
+.compare-label {
+  font-size: 0.75rem;
+  color: #45576e;
 }
 .search-input {
   display: flex;
@@ -2051,11 +2130,14 @@ tr:last-child td {
   .filters-toggle {
     display: inline-flex;
   }
-  .filter-panel:not(.open) > select,
+  .filter-panel:not(.open) > .multi-select,
   .filter-panel:not(.open) > .text-button {
     display: none;
   }
-  .filter-panel select {
+  .multi-menu {
+    width: 100%;
+  }
+  .filter-panel > .multi-select {
     min-width: 0;
     max-width: none;
     flex-basis: calc(50% - 5px);

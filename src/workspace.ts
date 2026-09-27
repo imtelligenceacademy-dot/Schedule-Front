@@ -51,20 +51,16 @@ export const EMPTY_CATALOG: Catalog = {
   assignments: [],
   academic_years: [],
 };
-export type Filter = {
-  school_id: string;
-  teacher_id: string;
-  day: string;
-  grade: string;
-  class_id: string;
-  search: string;
-};
+/** Filters that accept several values at once; an empty list means "all". */
+export type ListFilter = "school_id" | "teacher_id" | "day" | "grade" | "class_id";
+export const LIST_FILTERS: ListFilter[] = ["school_id", "teacher_id", "day", "grade", "class_id"];
+export type Filter = Record<ListFilter, string[]> & { search: string };
 export const CLEAR: Filter = {
-  school_id: "",
-  teacher_id: "",
-  day: "",
-  grade: "",
-  class_id: "",
+  school_id: [],
+  teacher_id: [],
+  day: [],
+  grade: [],
+  class_id: [],
   search: "",
 };
 export type Auth = { user: User; csrf_token: string; access_token?: string };

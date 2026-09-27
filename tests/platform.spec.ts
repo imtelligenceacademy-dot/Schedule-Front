@@ -157,9 +157,12 @@ test("mobile workspace and import validation/export operate through the backend"
     .getByRole("navigation")
     .getByRole("button", { name: "All Schedules", exact: true })
     .click();
-  await expect(page.getByLabel("Filter by day")).toBeHidden();
+  const dayFilter = page.getByRole("button", { name: /^Filter by day/ });
+  await expect(dayFilter).toBeHidden();
   await page.getByRole("button", { name: "Filters", exact: true }).click();
-  await page.getByLabel("Filter by day").selectOption("6");
+  await dayFilter.click();
+  await page.getByRole("checkbox", { name: "Sunday", exact: true }).check();
+  await page.keyboard.press("Escape");
   await expect(page.getByRole("button", { name: "Filters (1)", exact: true })).toBeVisible();
   await page.getByRole("tab", { name: "Compact", exact: true }).click();
   await expect(page.getByRole("row").filter({ hasText: "Sunday" })).toContainText("Grade 6 · C");
@@ -167,6 +170,34 @@ test("mobile workspace and import validation/export operate through the backend"
   await page.getByRole("button", { name: "Excel", exact: true }).click();
   expect((await downloaded).suggestedFilename()).toBe("robotics-schedule.xlsx");
   await context.close();
+});
+
+test("filters accept several values to compare two teachers", async ({ page }) => {
+  await login(page, "super@example.com");
+  await page
+    .getByRole("navigation")
+    .getByRole("button", { name: "All Schedules", exact: true })
+    .click();
+  await page.getByRole("button", { name: /^Filter by teacher/ }).click();
+  await page.getByRole("checkbox", { name: "Example Huda", exact: true }).check();
+  await page.getByRole("checkbox", { name: "Example Rami", exact: true }).check();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("button", { name: "Filter by teacher: 2 teachers" })).toBeVisible();
+  const legend = page.locator(".school-legend");
+  await expect(legend).toContainText("Comparing 2 teachers");
+  await expect(page.locator(".schedule-block")).not.toHaveCount(0);
+  const names = await page.locator(".schedule-block .block-teacher").allInnerTexts();
+  expect(new Set(names.map((x) => x.split(" · ")[1]))).toEqual(
+    new Set(["Example Huda", "Example Rami"]),
+  );
+  // Days combine the same way: Monday + Tuesday only.
+  await page.getByRole("button", { name: /^Filter by day/ }).click();
+  await page.getByRole("checkbox", { name: "Monday", exact: true }).check();
+  await page.getByRole("checkbox", { name: "Tuesday", exact: true }).check();
+  await page.keyboard.press("Escape");
+  await expect(page.locator(".timeline-day:not(.time-heading)")).toHaveText([/Monday/, /Tuesday/]);
+  await page.getByRole("button", { name: "Clear filters", exact: true }).click();
+  await expect(legend).not.toContainText("Comparing");
 });
 
 test("cold startup remains a loading state and wakes successfully", async ({ page }) => {

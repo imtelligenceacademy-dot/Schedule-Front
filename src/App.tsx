@@ -33,6 +33,7 @@ import {
   SUBTITLES,
   type Auth,
   type Filter,
+  type ListFilter,
   type ModalHost,
   type Page,
 } from "./workspace";
@@ -163,7 +164,8 @@ function Workspace({
   const writable = canEdit && !selectedYear?.archived;
   const query = new URLSearchParams({ academic_year_id: yearId });
   Object.entries(filter).forEach(([key, value]) => {
-    if (value) query.set(key, value);
+    if (Array.isArray(value)) value.forEach((x) => query.append(key, x));
+    else if (value) query.set(key, value);
   });
   const queryText = query.toString();
   useEffect(() => {
@@ -256,7 +258,7 @@ function Workspace({
     !(["Users", "Audit Log", "Settings"].includes(name) && !isSuper) &&
     !(name === "Data Import" && !canEdit);
   const visiblePage = allowed(page) ? page : "Dashboard";
-  const updateFilter = (name: keyof Filter, value: string) =>
+  const updateFilter = (name: ListFilter, value: string[]) =>
     setFilter((f) => ({ ...f, [name]: value }));
   function showSession(entry: Entry) {
     setSession(entry);
@@ -457,6 +459,9 @@ function Workspace({
                     onEntry={showSession}
                     catalog={catalog}
                     conflicts={conflictList}
+                    compareTeachers={
+                      filter.teacher_id.length > 1 ? filter.teacher_id.map(Number) : []
+                    }
                     canExport={canExport}
                     onRefresh={() => void load()}
                     onExport={(fmt) =>
@@ -488,7 +493,7 @@ function Workspace({
                   isSuper={isSuper}
                   host={host}
                   onViewSchedule={(teacherId) => {
-                    setFilter({ ...CLEAR, teacher_id: String(teacherId) });
+                    setFilter({ ...CLEAR, teacher_id: [String(teacherId)] });
                     setSearch("");
                     navigate("All Schedules");
                   }}
