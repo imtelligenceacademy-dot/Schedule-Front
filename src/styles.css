@@ -1161,8 +1161,96 @@ main {
 }
 .timeline-scroll,
 .columns-scroll {
-  overflow: auto;
+  /* Grows to fit every session; the page scrolls vertically, not the schedule. */
+  overflow-x: auto;
+  overflow-y: hidden;
   border-top: 1px solid var(--line);
+  cursor: grab;
+}
+.dragging,
+.dragging .schedule-block {
+  cursor: grabbing;
+  user-select: none;
+}
+.zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 2px;
+  margin-right: 6px;
+  color: #5d7292;
+}
+.zoom-controls .icon-button {
+  min-width: 29px;
+  min-height: 29px;
+  padding: 5px;
+}
+.zoom-controls .icon-button:hover:not(:disabled),
+.zoom-level:hover {
+  background: #f3f5f8;
+}
+.zoom-controls .icon-button:disabled {
+  opacity: 0.35;
+}
+.zoom-level {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  min-width: 46px;
+  padding: 5px 4px;
+  border-radius: 5px;
+}
+.filters-toggle {
+  display: none;
+}
+.day-picker {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 10px 12px;
+  color: #5d7292;
+}
+.day-picker .icon-button:disabled {
+  opacity: 0.3;
+}
+.day-chips {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.day-chips button {
+  flex: 1 0 auto;
+  min-width: 50px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+  color: #5d7292;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.day-chips button span {
+  font-size: 0.7rem;
+  font-weight: 400;
+  color: #a1adc0;
+}
+.day-chips button.active {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: white;
+}
+.day-chips button.active span {
+  color: #b8c4d6;
 }
 .timeline {
   display: grid;
@@ -1296,6 +1384,27 @@ main {
 }
 .day-group .block-time {
   margin-top: 6px;
+}
+/* Zoomed-out schedules: tighter cards, then only school, class and time. */
+.tight .schedule-block {
+  padding: 6px 9px;
+  gap: 1px;
+}
+.dense .schedule-block {
+  padding: 4px 7px;
+  gap: 0;
+}
+.dense .block-school,
+.dense .schedule-block > strong {
+  font-size: 0.75rem;
+}
+.timeline.dense .block-teacher,
+.timeline.dense .block-time {
+  display: none;
+}
+.schedule-columns.tight .schedule-block,
+.schedule-columns.dense .schedule-block {
+  min-height: 0;
 }
 .table-scroll {
   overflow: auto;
@@ -1916,7 +2025,8 @@ tr:last-child td {
   }
   .view-tabs {
     width: 100%;
-    overflow: auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
   }
   .schedule-toolbar {
     padding: 12px;
@@ -1933,14 +2043,96 @@ tr:last-child td {
   .filter-panel {
     padding: 12px;
   }
+  /* Search shares the first row with the Filters toggle; dropdowns wrap below. */
   .search-input {
-    flex-basis: 100%;
-    min-width: 100%;
+    flex: 1 1 60%;
+    min-width: 0;
+  }
+  .filters-toggle {
+    display: inline-flex;
+  }
+  .filter-panel:not(.open) > select,
+  .filter-panel:not(.open) > .text-button {
+    display: none;
   }
   .filter-panel select {
-    min-width: 120px;
+    min-width: 0;
     max-width: none;
-    flex-basis: 40%;
+    flex-basis: calc(50% - 5px);
+  }
+  .export-actions {
+    flex-wrap: wrap;
+  }
+  .zoom-controls {
+    margin-right: auto;
+  }
+  .school-legend {
+    padding: 0 14px 12px;
+  }
+  /* Timeline: one day at a time, full width; the day picker replaces the header row. */
+  .timeline.single .timeline-day {
+    display: none;
+  }
+  .day-picker {
+    padding-top: 2px;
+  }
+  .day-chips button {
+    flex: 1 1 0;
+    min-width: 0;
+    padding-inline: 2px;
+  }
+  .timeline-day {
+    padding: 10px 12px;
+    min-height: 0;
+  }
+  .time-heading {
+    padding-inline: 6px;
+  }
+  .time-axis span {
+    left: 6px;
+    font-size: 0.7rem;
+  }
+  .schedule-block {
+    padding: 7px 9px;
+  }
+  /* Columns: one swipeable card-width column per teacher/school. */
+  .columns-scroll {
+    scroll-snap-type: x mandatory;
+  }
+  .schedule-group {
+    width: 84vw;
+    padding: 14px;
+    scroll-snap-align: start;
+  }
+  /* Compact: each session becomes a tappable card. */
+  .compact-table thead {
+    display: none;
+  }
+  .compact-table tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 3px 12px;
+    padding: 13px 16px;
+    border-bottom: 1px solid #f0f3f7;
+    cursor: pointer;
+  }
+  .compact-table td {
+    padding: 0;
+    border: 0;
+  }
+  .compact-table td:nth-child(1) {
+    grid-column: 1;
+  }
+  .compact-table td:nth-child(5) {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .compact-table td:nth-child(n + 2):nth-child(-n + 4) {
+    grid-column: 1 / -1;
+    font-size: 0.8rem;
+  }
+  .compact-table td:nth-child(6) {
+    display: none;
   }
   .conflict-pair {
     grid-template-columns: 1fr;

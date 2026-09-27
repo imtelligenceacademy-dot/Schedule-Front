@@ -157,7 +157,10 @@ test("mobile workspace and import validation/export operate through the backend"
     .getByRole("navigation")
     .getByRole("button", { name: "All Schedules", exact: true })
     .click();
+  await expect(page.getByLabel("Filter by day")).toBeHidden();
+  await page.getByRole("button", { name: "Filters", exact: true }).click();
   await page.getByLabel("Filter by day").selectOption("6");
+  await expect(page.getByRole("button", { name: "Filters (1)", exact: true })).toBeVisible();
   await page.getByRole("tab", { name: "Compact", exact: true }).click();
   await expect(page.getByRole("row").filter({ hasText: "Sunday" })).toContainText("Grade 6 · C");
   const downloaded = page.waitForEvent("download");
